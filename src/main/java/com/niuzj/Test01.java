@@ -2,7 +2,11 @@ package com.niuzj;
 
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -83,8 +87,9 @@ public class Test01 {
     /**
      * 截断
      * 只输出前n个元素
-     * limit和skip操作出现时会优先执行limit和skip操作再进行其他操作
-     * 但是遇到sorted操作时没有效果
+     * limit和skip操作出现时,假如前面还有其他操作,会优先执行limit和skip操作再进行其他操作
+     * 但是遇到sorted操作时没有效果,不过可以先进行其他操作,再sorted
+     * 对一个 parallel 的 Steam 管道来说，如果其元素是有序的，那么 limit 操作的成本会比较大，因为它的返回对象必须是前 n 个也有一样次序的元素。取而代之的策略是取消元素间的次序，或者不要用 parallel Stream
      */
     @Test
     public void test06() {
@@ -94,6 +99,17 @@ public class Test01 {
             System.out.println(111111111111111L);
             return t.toUpperCase();
         }).limit(2).forEach((t) -> System.out.println(t));
+    }
+
+    @Test
+    public void test18() {
+        String[] arr = {"a", "b", "c"};
+        Stream<String> stream = Arrays.stream(arr);
+        List<String> list = stream.limit(2).sorted((t1, t2) -> {
+            System.out.println(11111);
+            return t1.compareTo(t2);
+        }).collect(Collectors.toList());
+        System.out.println(list);
     }
 
     /**
@@ -260,6 +276,73 @@ public class Test01 {
             return t + u;
         }).get();
         System.out.println(sum1);
+    }
+
+    /**
+     * 输入流转换为Stream
+     *
+     * @throws FileNotFoundException
+     */
+    @Test
+    public void test19() throws FileNotFoundException {
+        BufferedReader reader = new BufferedReader(new FileReader("E:\\home\\logs\\admin\\default.log"));
+        Stream<String> lines = reader.lines();
+        int i = lines.mapToInt((t) -> t.length()).max().getAsInt();
+        System.out.println("文件中最长的一行的长度为" + i);
+    }
+
+    /**
+     * match
+     * allMatch 所有元素都满足条件才返回true
+     * anyMatch 只有一个满足条件就返回true
+     * noneMatch 所有元素都不满足条件才true
+     */
+    @Test
+    public void test20() {
+        Stream<Integer> stream = Stream.of(20, 50, 10, 50, 33);
+        boolean b;
+//        b = stream.allMatch((t) -> t > 10);
+//        b = stream.anyMatch((t) -> t == 20);
+        b = stream.noneMatch((t) -> t == 100);
+        System.out.println(b);
+    }
+
+    /**
+     * 自己生成流
+     * Supplier函数生成流的元素,生成的是无限流,流的大小需要使用limit限制, 否则流中的数据永远遍历不完
+     */
+    @Test
+    public void test21() {
+        Random random = new Random();
+        Stream.generate(() -> random.nextInt()).limit(10).forEach((t) -> System.out.println(t));
+    }
+
+    /**
+     * 自定义Supplier实现
+     */
+    @Test
+    public void test22(){
+        class MySupplier implements Supplier<String>{
+            private int index;
+
+            private Random random = new Random();
+
+            @Override
+            public String get() {
+                return random.nextInt() + "_" + (index++);
+            }
+        }
+        Stream.generate(new MySupplier()).limit(10).forEach((t) -> System.out.println(t));
+    }
+
+    /**
+     * iterate
+     * 给定一个种子,然后以特定方式生成元素,也是无限流
+     */
+    @Test
+    public void test23(){
+        Stream.iterate(1, (t) -> t * 3).limit(10).forEach(System.out::println);
+
     }
 
 }
