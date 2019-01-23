@@ -321,8 +321,8 @@ public class Test01 {
      * 自定义Supplier实现
      */
     @Test
-    public void test22(){
-        class MySupplier implements Supplier<String>{
+    public void test22() {
+        class MySupplier implements Supplier<String> {
             private int index;
 
             private Random random = new Random();
@@ -340,9 +340,45 @@ public class Test01 {
      * 给定一个种子,然后以特定方式生成元素,也是无限流
      */
     @Test
-    public void test23(){
+    public void test23() {
         Stream.iterate(1, (t) -> t * 3).limit(10).forEach(System.out::println);
-
     }
+
+    /**
+     * 分组,根据传入的函数返回的值进行分组
+     */
+    @Test
+    public void test24() {
+        Map<Integer, List<String>> map = Stream.of("as", "df", "asa", "112", "112").collect(Collectors.groupingBy((t) -> t.hashCode()));
+        System.out.println(map);
+    }
+
+    /**
+     * 根据传入函数所指定的条件把元素分为两个部分
+     */
+    @Test
+    public void test25(){
+        Map<Boolean, List<String>> map = Stream.of("as", "df", "asa", "112", "112").collect(Collectors.partitioningBy((t) -> t.length() > 2));
+        System.out.println(map);
+    }
+
+    /**
+     * Stream特性
+     * 不是数据结构
+     * 它没有内部存储，它只是用操作管道从 source（数据结构、数组、generator function、IO channel）抓取数据。
+     * 它也绝不修改自己所封装的底层数据结构的数据。例如 Stream 的 filter 操作会产生一个不包含被过滤元素的新 Stream，而不是从 source 删除那些元素。
+     * 所有 Stream 的操作必须以 lambda 表达式为参数
+     * 不支持索引访问
+     * 你可以请求第一个元素，但无法请求第二个，第三个，或最后一个。不过请参阅下一项。
+     * 很容易生成数组或者 List
+     * 惰性化
+     * 很多 Stream 操作是向后延迟的，一直到它弄清楚了最后需要多少数据才会开始。
+     * Intermediate 操作永远是惰性化的。
+     * 并行能力
+     * 当一个 Stream 是并行化的，就不需要再写多线程代码，所有对它的操作会自动并行进行的。
+     * 可以是无限的
+     * 集合有固定大小，Stream 则不必。limit(n) 和 findFirst() 这类的 short-circuiting 操作可以对无限的 Stream 进行运算并很快完成。
+     */
+
 
 }
